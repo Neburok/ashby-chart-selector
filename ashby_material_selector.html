@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AshbyChart Selector</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            height: calc(100vh - 150px);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .filter-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .filter-item select {
+            flex: 1;
+        }
+
+        .filter-item input {
+            flex: 1;
+        }
+
+        .filter-item button {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .results-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .results-panel h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .material-item {
+            background: white;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+        }
+
+        .performance-index {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .performance-index h4 {
+            color: #e17055;
+            margin-bottom: 10px;
+        }
+
+        .index-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .index-controls input {
+            flex: 1;
+        }
+
+        #chart {
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .material-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .welcome-screen h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AshbyChart Selector</h1>
+            <p>Aplicación Interactiva para la Selección de Materiales usando el Método Ashby</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="section">
+                    <h3>🎯 Configuración del Gráfico</h3>
+                    <div class="form-group">
+                        <label for="xAxis">Propiedad Eje X:</label>
+                        <select id="xAxis">
+                            <option value="">Seleccionar propiedad</option>
+                            <option value="density">Densidad (kg/m³)</option>
+                            <option value="youngModulus">Módulo de Young (GPa)</option>
+                            <option value="yieldStrength">Límite Elástico (MPa)</option>
+                            <option value="fractureToughness">Tenacidad Fractura (MPa√m)</option>
+                            <option value="thermalConductivity">Conductividad Térmica (W/m·K)</option>
+                            <option value="thermalExpansion">Expansión Térmica (µm/m°C)</option>
+                            <option value="maxTemp">Temp. Máx. Servicio (°C)</option>
+                            <option value="price">Precio (€/kg)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="yAxis">Propiedad Eje Y:</label>
+                        <select id="yAxis">
+                            <option value="">Seleccionar propiedad</option>
+                            <option value="density">Densidad (kg/m³)</option>
+                            <option value="youngModulus">Módulo de Young (GPa)</option>
+                            <option value="yieldStrength">Límite Elástico (MPa)</option>
+                            <option value="fractureToughness">Tenacidad Fractura (MPa√m)</option>
+                            <option value="thermalConductivity">Conductividad Térmica (W/m·K)</option>
+                            <option value="thermalExpansion">Expansión Térmica (µm/m°C)</option>
+                            <option value="maxTemp">Temp. Máx. Servicio (°C)</option>
+                            <option value="price">Precio (€/kg)</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="generateChart()">Generar Gráfico de Ashby</button>
+                </div>
+
+                <div class="section">
+                    <h3>🔍 Filtros de Selección</h3>
+                    <div id="filtersContainer">
+                        <!-- Los filtros se generarán dinámicamente -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="addFilter()">Agregar Filtro</button>
+                    <button class="btn" onclick="applyFilters()">Aplicar Filtros</button>
+                    <button class="btn" onclick="clearFilters()" style="background: #ff4757; margin-top: 5px;">Limpiar Filtros</button>
+                </div>
+
+                <div class="section">
+                    <h3>📊 Índice de Rendimiento</h3>
+                    <div class="performance-index">
+                        <h4>Línea de Guía</h4>
+                        <div class="form-group">
+                            <label for="indexSlope">Pendiente (m):</label>
+                            <input type="number" id="indexSlope" value="1" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="indexPosition">Posición:</label>
+                            <input type="range" id="indexPosition" min="0" max="100" value="50">
+                        </div>
+                        <button class="btn" onclick="togglePerformanceLine()">Mostrar/Ocultar Línea</button>
+                    </div>
+                </div>
+
+                <div class="results-panel">
+                    <h4>Materiales Seleccionados</h4>
+                    <div id="resultsContainer">
+                        <p>Genere un gráfico y aplique filtros para ver resultados.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div id="chart">
+                    <div class="welcome-screen">
+                        <h2>Bienvenido al AshbyChart Selector</h2>
+                        <p>Seleccione las propiedades para los ejes X e Y, luego genere su primer gráfico de Ashby.</p>
+                        <p>Utilice los filtros laterales para refinar su selección de materiales.</p>
+                    </div>
+                </div>
+                <div class="material-legend" id="materialLegend" style="display: none;">
+                    <!-- La leyenda se generará dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos de materiales
+        const materialsDatabase = {
+            "Aceros": {
+                color: "#2c3e50",
+                materials: [
+                    { name: "Acero al Carbono", density: [7700, 7900], youngModulus: [200, 210], yieldStrength: [250, 400], fractureToughness: [50, 100], thermalConductivity: [40, 50], thermalExpansion: [11, 13], maxTemp: [500, 600], price: [0.8, 1.2] },
+                    { name: "Acero Inoxidable", density: [7900, 8100], youngModulus: [190, 200], yieldStrength: [200, 300], fractureToughness: [100, 200], thermalConductivity: [15, 25], thermalExpansion: [17, 19], maxTemp: [800, 1000], price: [3, 8] }
+                ]
+            },
+            "Aleaciones de Aluminio": {
+                color: "#3498db",
+                materials: [
+                    { name: "Al 6061", density: [2650, 2700], youngModulus: [68, 72], yieldStrength: [240, 280], fractureToughness: [25, 35], thermalConductivity: [150, 180], thermalExpansion: [23, 25], maxTemp: [150, 200], price: [1.8, 2.5] },
+                    { name: "Al 7075", density: [2780, 2820], youngModulus: [71, 74], yieldStrength: [470, 520], fractureToughness: [20, 30], thermalConductivity: [130, 160], thermalExpansion: [23, 24], maxTemp: [100, 150], price: [2.5, 4] }
+                ]
+            },
+            "Aleaciones de Titanio": {
+                color: "#9b59b6",
+                materials: [
+                    { name: "Ti-6Al-4V", density: [4400, 4500], youngModulus: [110, 120], yieldStrength: [880, 950], fractureToughness: [80, 120], thermalConductivity: [6, 8], thermalExpansion: [8.5, 9.5], maxTemp: [400, 600], price: [25, 40] }
+                ]
+            },
+            "Termoplásticos": {
+                color: "#e74c3c",
+                materials: [
+                    { name: "Polietileno (PE)", density: [910, 970], youngModulus: [0.8, 1.2], yieldStrength: [20, 30], fractureToughness: [1.5, 3], thermalConductivity: [0.3, 0.5], thermalExpansion: [100, 200], maxTemp: [80, 120], price: [1.2, 1.8] },
+                    { name: "Polipropileno (PP)", density: [900, 920], youngModulus: [1.2, 1.8], yieldStrength: [30, 40], fractureToughness: [2, 4], thermalConductivity: [0.2, 0.3], thermalExpansion: [80, 120], maxTemp: [100, 140], price: [1.1, 1.5] },
+                    { name: "PVC", density: [1350, 1450], youngModulus: [2.5, 3.5], yieldStrength: [40, 60], fractureToughness: [1, 2], thermalConductivity: [0.15, 0.25], thermalExpansion: [60, 80], maxTemp: [60, 80], price: [0.8, 1.3] }
+                ]
+            },
+            "Termoestables": {
+                color: "#f39c12",
+                materials: [
+                    { name: "Resina Epoxi", density: [1100, 1300], youngModulus: [3, 6], yieldStrength: [50, 90], fractureToughness: [0.5, 1.5], thermalConductivity: [0.2, 0.3], thermalExpansion: [50, 80], maxTemp: [120, 180], price: [3, 8] },
+                    { name: "Resina Fenólica", density: [1200, 1400], youngModulus: [4, 8], yieldStrength: [40, 70], fractureToughness: [0.4, 1], thermalConductivity: [0.3, 0.4], thermalExpansion: [20, 40], maxTemp: [150, 200], price: [2, 5] }
+                ]
+            },
+            "Cerámicos Técnicos": {
+                color: "#27ae60",
+                materials: [
+                    { name: "Alúmina (Al₂O₃)", density: [3900, 4000], youngModulus: [350, 400], yieldStrength: [300, 400], fractureToughness: [3, 5], thermalConductivity: [20, 30], thermalExpansion: [7, 9], maxTemp: [1600, 1800], price: [5, 15] },
+                    { name: "Circonia (ZrO₂)", density: [6000, 6100], youngModulus: [200, 220], yieldStrength: [800, 1200], fractureToughness: [6, 12], thermalConductivity: [2, 3], thermalExpansion: [10, 12], maxTemp: [2000, 2300], price: [20, 50] }
+                ]
+            },
+            "Vidrios": {
+                color: "#16a085",
+                materials: [
+                    { name: "Vidrio Sódico-Cálcico", density: [2400, 2600], youngModulus: [70, 80], yieldStrength: [50, 100], fractureToughness: [0.7, 1], thermalConductivity: [1, 1.5], thermalExpansion: [8, 10], maxTemp: [400, 500], price: [0.5, 1] }
+                ]
+            },
+            "Compuestos Reforzados": {
+                color: "#8e44ad",
+                materials: [
+                    { name: "GFRP (Fibra de Vidrio)", density: [1500, 2000], youngModulus: [20, 50], yieldStrength: [200, 500], fractureToughness: [15, 40], thermalConductivity: [0.3, 0.5], thermalExpansion: [10, 30], maxTemp: [150, 200], price: [3, 8] },
+                    { name: "CFRP (Fibra de Carbono)", density: [1400, 1600], youngModulus: [120, 180], yieldStrength: [800, 1500], fractureToughness: [20, 60], thermalConductivity: [1, 10], thermalExpansion: [-1, 1], maxTemp: [150, 250], price: [15, 50] }
+                ]
+            },
+            "Maderas": {
+                color: "#d35400",
+                materials: [
+                    { name: "Pino", density: [350, 600], youngModulus: [8, 15], yieldStrength: [30, 60], fractureToughness: [0.5, 2], thermalConductivity: [0.1, 0.2], thermalExpansion: [3, 5], maxTemp: [60, 80], price: [0.3, 0.8] },
+                    { name: "Roble", density: [600, 900], youngModulus: [10, 18], yieldStrength: [40, 80], fractureToughness: [1, 3], thermalConductivity: [0.15, 0.25], thermalExpansion: [4, 6], maxTemp: [60, 80], price: [1, 3] }
+                ]
+            }
+        };
+
+        const propertyLabels = {
+            density: "Densidad (kg/m³)",
+            youngModulus: "Módulo de Young (GPa)",
+            yieldStrength: "Límite Elástico (MPa)",
+            fractureToughness: "Tenacidad a la Fractura (MPa√m)",
+            thermalConductivity: "Conductividad Térmica (W/m·K)",
+            thermalExpansion: "Expansión Térmica (µm/m°C)",
+            maxTemp: "Temperatura Máxima (°C)",
+            price: "Precio (€/kg)"
+        };
+
+        let currentChart = null;
+        let currentFilters = [];
+        let performanceLineVisible = false;
+        let filteredFamilies = Object.keys(materialsDatabase);
+
+        function generateChart() {
+            const xProperty = document.getElementById('xAxis').value;
+            const yProperty = document.getElementById('yAxis').value;
+
+            if (!xProperty || !yProperty) {
+                alert('Por favor seleccione ambas propiedades para los ejes.');
+                return;
+            }
+
+            if (xProperty === yProperty) {
+                alert('Por favor seleccione propiedades diferentes para cada eje.');
+                return;
+            }
+
+            const traces = [];
+            const legend = [];
+
+            // Generar elipses para cada familia de materiales
+            Object.keys(materialsDatabase).forEach(family => {
+                if (filteredFamilies.includes(family)) {
+                    const familyData = materialsDatabase[family];
+                    const ellipse = generateEllipse(family, familyData, xProperty, yProperty);
+                    
+                    if (ellipse) {
+                        traces.push(ellipse);
+                        legend.push({
+                            name: family,
+                            color: familyData.color
+                        });
+                    }
+                }
+            });
+
+            const layout = {
+                title: {
+                    text: `Gráfico de Ashby: ${propertyLabels[yProperty]} vs ${propertyLabels[xProperty]}`,
+                    font: { size: 16, color: '#333' }
+                },
+                xaxis: {
+                    title: propertyLabels[xProperty],
+                    type: 'log',
+                    autorange: true,
+                    gridcolor: '#e0e0e0'
+                },
+                yaxis: {
+                    title: propertyLabels[yProperty],
+                    type: 'log',
+                    autorange: true,
+                    gridcolor: '#e0e0e0'
+                },
+                showlegend: false,
+                hovermode: 'closest',
+                plot_bgcolor: '#fafafa',
+                paper_bgcolor: 'white',
+                margin: { t: 60, r: 20, b: 60, l: 80 }
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToAdd: [{
+                    name: 'Selección por Caja',
+                    icon: {
+                        width: 857.1,
+                        height: 1000,
+                        path: 'm214-7h429v214h-429v-214z m500 0h143v714h-143v-714z m-500 286h429v428h-429v-428z',
+                        transform: 'matrix(1 0 0 -1 0 850)'
+                    },
+                    click: function() {
+                        enableBoxSelect();
+                    }
+                }],
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+            };
+
+            Plotly.newPlot('chart', traces, layout, config);
+            
+            // Actualizar leyenda
+            updateLegend(legend);
+            
+            currentChart = { traces, layout, xProperty, yProperty };
+            
+            // Añadir evento de selección por caja
+            document.getElementById('chart').on('plotly_selected', function(eventData) {
+                if (eventData && eventData.range) {
+                    applyBoxSelection(eventData.range);
+                }
+            });
+        }
+
+        function generateEllipse(familyName, familyData, xProperty, yProperty) {
+            // Calcular los rangos de la familia completa
+            let xMin = Infinity, xMax = -Infinity;
+            let yMin = Infinity, yMax = -Infinity;
+
+            familyData.materials.forEach(material => {
+                const xRange = material[xProperty];
+                const yRange = material[yProperty];
+                
+                if (xRange && yRange) {
+                    xMin = Math.min(xMin, xRange[0]);
+                    xMax = Math.max(xMax, xRange[1]);
+                    yMin = Math.min(yMin, yRange[0]);
+                    yMax = Math.max(yMax, yRange[1]);
+                }
+            });
+
+            if (xMin === Infinity) return null;
+
+            // Generar puntos de la elipse
+            const points = 30;
+            const xCenter = Math.sqrt(xMin * xMax);
+            const yCenter = Math.sqrt(yMin * yMax);
+            const xRadius = Math.log10(xMax) - Math.log10(xCenter);
+            const yRadius = Math.log10(yMax) - Math.log10(yCenter);
+
+            const xPoints = [];
+            const yPoints = [];
+
+            for (let i = 0; i <= points; i++) {
+                const angle = (2 * Math.PI * i) / points;
+                const x = xCenter * Math.pow(10, xRadius * Math.cos(angle));
+                const y = yCenter * Math.pow(10, yRadius * Math.sin(angle));
+                xPoints.push(x);
+                yPoints.push(y);
+            }
+
+            return {
+                x: xPoints,
+                y: yPoints,
+                fill: 'tonexty',
+                fillcolor: familyData.color + '40',
+                line: {
+                    color: familyData.color,
+                    width: 2
+                },
+                mode: 'lines',
+                name: familyName,
+                hovertemplate: 
+                    `<b>${familyName}</b><br>` +
+                    `${propertyLabels[xProperty]}: ${xMin.toFixed(1)} - ${xMax.toFixed(1)}<br>` +
+                    `${propertyLabels[yProperty]}: ${yMin.toFixed(1)} - ${yMax.toFixed(1)}<br>` +
+                    `<extra></extra>`,
+                showlegend: false
+            };
+        }
+
+        function updateLegend(legend) {
+            const legendContainer = document.getElementById('materialLegend');
+            legendContainer.innerHTML = '';
+            
+            legend.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background-color: ${item.color}"></div>
+                    <span>${item.name}</span>
+                `;
+                legendContainer.appendChild(legendItem);
+            });
+            
+            legendContainer.style.display = 'grid';
+        }
+
+        function addFilter() {
+            const filtersContainer = document.getElementById('filtersContainer');
+            const filterId = 'filter_' + Date.now();
+            
+            const filterHtml = `
+                <div class="filter-item" id="${filterId}">
+                    <select onchange="updateFilterOperator('${filterId}')">
+                        <option value="">Propiedad</option>
+                        <option value="density">Densidad</option>
+                        <option value="youngModulus">Módulo Young</option>
+                        <option value="yieldStrength">Límite Elástico</option>
+                        <option value="fractureToughness">Tenacidad</option>
+                        <option value="thermalConductivity">Cond. Térmica</option>
+                        <option value="thermalExpansion">Exp. Térmica</option>
+                        <option value="maxTemp">Temp. Máx.</option>
+                        <option value="price">Precio</option>
+                    </select>
+                    <select>
+                        <option value=">">&gt;</option>
+                        <option value="<">&lt;</option>
+                        <option value=">=">&gt;=</option>
+                        <option value="<=">&lt;=</option>
+                    </select>
+                    <input type="number" placeholder="Valor" step="any">
+                    <button onclick="removeFilter('${filterId}')">×</button>
+                </div>
+            `;
+            
+            filtersContainer.insertAdjacentHTML('beforeend', filterHtml);
+        }
+
+        function removeFilter(filterId) {
+            document.getElementById(filterId).remove();
+        }
+
+        function applyFilters() {
+            const filterItems = document.querySelectorAll('.filter-item');
+            const filters = [];
+            
+            filterItems.forEach(item => {
+                const selects = item.querySelectorAll('select');
+                const input = item.querySelector('input');
+                
+                if (selects[0].value && input.value) {
+                    filters.push({
+                        property: selects[0].value,
+                        operator: selects[1].value,
+                        value: parseFloat(input.value)
+                    });
+                }
+            });
+            
+            // Aplicar filtros a las familias de materiales
+            filteredFamilies = Object.keys(materialsDatabase).filter(family => {
+                return passesFilters(materialsDatabase[family], filters);
+            });
+            
+            // Regenerar gráfico con familias filtradas
+            if (currentChart) {
+                generateChart();
+                updateResults();
+            }
+        }
+
+        function passesFilters(familyData, filters) {
+            return filters.every(filter => {
+                return familyData.materials.some(material => {
+                    const propertyRange = material[filter.property];
+                    if (!propertyRange) return false;
+                    
+                    const [min, max] = propertyRange;
+                    
+                    switch (filter.operator) {
+                        case '>': return max > filter.value;
+                        case '<': return min < filter.value;
+                        case '>=': return max >= filter.value;
+                        case '<=': return min <= filter.value;
+                        default: return false;
+                    }
+                });
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('filtersContainer').innerHTML = '';
+            filteredFamilies = Object.keys(materialsDatabase);
+            if (currentChart) {
+                generateChart();
+                updateResults();
+            }
+        }
+
+        function applyBoxSelection(range) {
+            if (!currentChart) return;
+            
+            const xRange = range.x;
+            const yRange = range.y;
+            
+            // Filtrar familias que intersectan con la caja de selección
+            filteredFamilies = Object.keys(materialsDatabase).filter(family => {
+                return familyIntersectsBox(materialsDatabase[family], xRange, yRange, currentChart.xProperty, currentChart.yProperty);
+            });
+            
+            generateChart();
+            updateResults();
+        }
+
+        function familyIntersectsBox(familyData, xRange, yRange, xProperty, yProperty) {
+            let xMin = Infinity, xMax = -Infinity;
+            let yMin = Infinity, yMax = -Infinity;
+
+            familyData.materials.forEach(material => {
+                const xMaterialRange = material[xProperty];
+                const yMaterialRange = material[yProperty];
+                
+                if (xMaterialRange && yMaterialRange) {
+                    xMin = Math.min(xMin, xMaterialRange[0]);
+                    xMax = Math.max(xMax, xMaterialRange[1]);
+                    yMin = Math.min(yMin, yMaterialRange[0]);
+                    yMax = Math.max(yMax, yMaterialRange[1]);
+                }
+            });
+
+            if (xMin === Infinity) return false;
+
+            // Verificar intersección con la caja de selección
+            return !(xMax < xRange[0] || xMin > xRange[1] || yMax < yRange[0] || yMin > yRange[1]);
+        }
+
+        function updateResults() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            if (filteredFamilies.length === 0) {
+                resultsContainer.innerHTML = '<p>No se encontraron materiales que cumplan los criterios.</p>';
+                return;
+            }
+            
+            let resultsHtml = '';
+            filteredFamilies.forEach(family => {
+                const familyData = materialsDatabase[family];
+                familyData.materials.forEach(material => {
+                    resultsHtml += `
+                        <div class="material-item">
+                            <strong>${material.name}</strong> (${family})
+                        </div>
+                    `;
+                });
+            });
+            
+            resultsContainer.innerHTML = resultsHtml;
+        }
+
+        function togglePerformanceLine() {
+            if (!currentChart) {
+                alert('Primero genere un gráfico de Ashby.');
+                return;
+            }
+            
+            performanceLineVisible = !performanceLineVisible;
+            
+            if (performanceLineVisible) {
+                addPerformanceLine();
+            } else {
+                removePerformanceLine();
+            }
+        }
+
+        function addPerformanceLine() {
+            const slope = parseFloat(document.getElementById('indexSlope').value);
+            const position = parseFloat(document.getElementById('indexPosition').value);
+            
+            // Obtener rangos actuales del gráfico
+            const chartDiv = document.getElementById('chart');
+            const layout = chartDiv.layout;
+            
+            // Calcular puntos de la línea de rendimiento
+            const xRange = layout.xaxis.range || [1, 1000];
+            const yRange = layout.yaxis.range || [1, 1000];
+            
+            const xMin = Math.pow(10, xRange[0]);
+            const xMax = Math.pow(10, xRange[1]);
+            
+            // Ajustar la posición de la línea
+            const logXRange = xRange[1] - xRange[0];
+            const logYRange = yRange[1] - yRange[0];
+            const offset = (position / 100) * Math.min(logXRange, logYRange);
+            
+            const xLine = [xMin, xMax];
+            const yLine = xLine.map(x => Math.pow(10, Math.log10(x) * slope + offset));
+            
+            const performanceTrace = {
+                x: xLine,
+                y: yLine,
+                mode: 'lines',
+                line: {
+                    color: 'red',
+                    width: 3,
+                    dash: 'dash'
+                },
+                name: `Línea de Rendimiento (m=${slope})`,
+                hovertemplate: `Índice de Rendimiento<br>Pendiente: ${slope}<extra></extra>`,
+                showlegend: false
+            };
+            
+            Plotly.addTraces('chart', performanceTrace);
+        }
+
+        function removePerformanceLine() {
+            const chartDiv = document.getElementById('chart');
+            const traces = chartDiv.data;
+            
+            // Encontrar y eliminar la línea de rendimiento
+            for (let i = traces.length - 1; i >= 0; i--) {
+                if (traces[i].name && traces[i].name.includes('Línea de Rendimiento')) {
+                    Plotly.deleteTraces('chart', i);
+                    break;
+                }
+            }
+        }
+
+        function enableBoxSelect() {
+            const chartDiv = document.getElementById('chart');
+            Plotly.relayout(chartDiv, {
+                'dragmode': 'select'
+            });
+        }
+
+        // Event listeners para actualizar la línea de rendimiento en tiempo real
+        document.getElementById('indexSlope').addEventListener('input', function() {
+            if (performanceLineVisible) {
+                removePerformanceLine();
+                addPerformanceLine();
+            }
+        });
+
+        document.getElementById('indexPosition').addEventListener('input', function() {
+            if (performanceLineVisible) {
+                removePerformanceLine();
+                addPerformanceLine();
+            }
+        });
+
+        // Inicializar con algunos filtros de ejemplo
+        window.addEventListener('load', function() {
+            // Agregar un filtro de ejemplo
+            setTimeout(() => {
+                addFilter();
+            }, 500);
+        });
+
+        // Configurar valores por defecto para demostración
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('xAxis').value = 'density';
+                document.getElementById('yAxis').value = 'youngModulus';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
